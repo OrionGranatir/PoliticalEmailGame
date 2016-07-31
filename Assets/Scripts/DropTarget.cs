@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Backend;
 
 public class DropTarget : MonoBehaviour 
 {
+	public EmailCategory Category;
 	void Start () 
 	{
+		
 	}
 	
 	void Update () 

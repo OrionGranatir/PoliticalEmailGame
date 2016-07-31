@@ -3,9 +3,12 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
+using Backend;
 
 public class Email : MonoBehaviour 
 {
+	public delegate void CategoryChooseDelegate( EmailCategory category );
+
 	public Text toLine;
 	public Text fromLine;
 	public Text subjectLine;
@@ -18,12 +21,24 @@ public class Email : MonoBehaviour
 	private bool showDocument = true;
 	private const float timeToScale = 0.35f;
 	private float timeScaling = timeToScale;
+	private CEmail mEmail;
+
+	public event CategoryChooseDelegate CategoryChosenEvent;
 
 	// Use this for initialization
 	void Start () 
 	{
 		startingPos = transform.position;
 		targetPos = startingPos;
+	}
+
+	public void SetEmailData( CEmail email )
+	{
+		mEmail = email;
+		toLine.text = email.To;
+		fromLine.text = email.From;
+		subjectLine.text = email.Subject;
+		body.text = email.Body;
 	}
 
 	// Update is called once per frame
@@ -76,6 +91,10 @@ public class Email : MonoBehaviour
 				DropTarget target = hits[ index ].gameObject.GetComponent<DropTarget>();
 				if( target )
 				{
+					if(CategoryChosenEvent != null)
+					{
+						CategoryChosenEvent(target.Category);
+					}
 					target.RecieveEmail( this );
 					foundTarget = true;
 					break;
