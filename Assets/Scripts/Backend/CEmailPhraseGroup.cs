@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Backend
 {
-	class CEmailPhraseGroup
+	public class CEmailPhraseGroup
 	{
 		private List<CEmailPhrase> mPhrases = new List<CEmailPhrase>();
 		private string mTag;

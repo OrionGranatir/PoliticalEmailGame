@@ -8,7 +8,7 @@ namespace Backend
 	class CBackendUtil
 	{
 		public delegate void DebugPrintDelegate(string text);
-		public static DebugPrintDelegate DebugPrintCallback;
+		public static DebugPrintDelegate DebugPrintCallback = null;
 
 		public static void DebugPrint(string text)
 		{

@@ -63,6 +63,8 @@ public class DataManager : MonoBehaviour
 
 	void Start() 
 	{
+		// Hook up print callbacks
+		CBackendUtil.DebugPrintCallback = (text) => Debug.Log(text);
 
 		// Add the email request
 		DownloadDataInfo emailInfo = new DownloadDataInfo();
@@ -150,6 +152,7 @@ public class DataManager : MonoBehaviour
 
 				if( loadCount == 0 )
 				{
+					CEmailGenerator.Instance.PrintSummary();
 					CEmailGenerator.Instance.ValidateEmails();
                     state.value = State.Ready;
 				}

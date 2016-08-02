@@ -7,9 +7,9 @@ namespace Backend
 	{
 		Unknown,
 		Bill,
-		PrivateServer,
-		PublicServer,
-		CampaignManager,
+		Senator,
+		Personal,
+		Manager,
 		Trash
 	};
 
