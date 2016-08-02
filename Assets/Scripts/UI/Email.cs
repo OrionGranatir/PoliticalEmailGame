@@ -64,7 +64,7 @@ public class Email : MonoBehaviour
 	public void SetEmailData( CEmail email )
 	{
 		mEmail = email;
-		toLine.text = email.To;
+		toLine.text = "";
 		fromLine.text = email.From;
 		subjectLine.text = email.Subject;
 		body.text = email.Body;

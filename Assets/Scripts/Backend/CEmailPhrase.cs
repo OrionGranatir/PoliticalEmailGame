@@ -5,11 +5,13 @@ using System.Text;
 
 namespace Backend
 {
-	public class CEmail
+	class CEmailPhrase
 	{
-		public string From { get; set; }
-		public string Subject { get; set; }
-		public string Body { get; set; }
+		public string Text { get; set; }
 		public EmailCategory Category { get; set; }
+
+		public CEmailPhrase()
+		{
+		}
 	}
 }
