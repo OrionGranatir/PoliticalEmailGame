@@ -6,11 +6,21 @@ public class GameplayDriver : MonoBehaviour {
 
 	public Email UIEmailPrefab;
 
-	private CGameplay mGameplay;
+	public CGameplay mGameplay { get; private set; }
 	private Email mCurrentEmailUI;
 
+	private bool init = false;
+	private DataManager dataManager;
+
 	// Use this for initialization
-	void Start () {
+	void Start () 
+	{
+		dataManager = GameObject.Find( "Data Manager" ).GetComponent<DataManager>();
+	}
+
+	void Init()
+	{
+		init = true;
 
 		// disable the email object. We'll use it as a prefab for generating future emails
 		// and for positional data
@@ -20,6 +30,12 @@ public class GameplayDriver : MonoBehaviour {
 		mGameplay.NewEmailEvent += MGameplay_NewEmailEvent;
 
 		mGameplay.StartWave();
+	}
+
+	// Returns true when the game backend has fully loaded
+	public bool IsReady()
+	{
+		return init;
 	}
 
 	private void MGameplay_NewEmailEvent(CEmail prevEmail, CEmail newEmail)
@@ -41,7 +57,18 @@ public class GameplayDriver : MonoBehaviour {
 	}
 
 	// Update is called once per frame
-	void Update () {
-		mGameplay.Update(Time.deltaTime);
+	void Update () 
+	{
+		if( !init )
+		{
+			if( dataManager.IsReady() )
+			{
+				Init();
+			}
+		}
+		else
+		{
+			mGameplay.Update(Time.deltaTime);
+		}
 	}
 }
