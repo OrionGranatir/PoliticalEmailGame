@@ -163,7 +163,7 @@ public class Email : MonoBehaviour
 					{
 						if(CategoryChosenEvent != null)
 						{
-							CategoryChosenEvent(target.Category);
+							CategoryChosenEvent(target.Category());
 						}
 						target.RecieveEmail( this );
 						foundTarget = true;
