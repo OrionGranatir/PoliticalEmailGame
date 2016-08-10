@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Backend
 {
-	public enum EmailCategory
+	public enum CharacterType
 	{
 		Unknown,
 		Bill,
@@ -13,31 +13,62 @@ namespace Backend
 		Trash
 	};
 
-	class CEnumUtility
+	public enum CharacterMood
 	{
-		private static bool isInited = false;
-		private static void InitOnce()
+		Neutral,
+		Happy,
+		Upset
+	};
+
+	public enum Difficulty
+	{
+		Easy,
+		Medium,
+		Hard
+	};
+
+	class TextToEnum
+	{
+		private static Dictionary<Type, Dictionary<string, int>> mLookup = new Dictionary<Type, Dictionary<string, int>>();
+
+		public static bool Convert<T>(string text, out int outValue, int defaultValue = 0, bool printWarning = true)
 		{
-			if( isInited == false )
+			if (text == string.Empty || text == "")
 			{
-				isInited = true;
-
-				mCategoryLookup = new Dictionary<string, EmailCategory>();
-				string[] names = Enum.GetNames(typeof(EmailCategory));
-                for (int i = 0; i < names.Length; i++)
-				{
-					mCategoryLookup.Add(names[i].ToLower(), (EmailCategory)i);
-				}
-
-				mCategoryLookup.Add( string.Empty, EmailCategory.Unknown );
+				outValue = defaultValue;
+				return true;
 			}
+
+			Type thisType = typeof(T);
+			if (!mLookup.ContainsKey(thisType))
+			{
+				mLookup.Add(thisType, new Dictionary<string, int>());
+				string[] names = Enum.GetNames(typeof(T));
+				for (int i = 0; i < names.Length; i++)
+				{
+					mLookup[thisType].Add(names[i].ToLower(), i);
+				}
+			}
+			int outValueInt;
+			if (mLookup[thisType].TryGetValue(text.ToLower(), out outValueInt))
+			{
+				outValue = outValueInt;
+				return true;
+			}
+			if (printWarning)
+			{
+				CBackendUtil.DebugPrint(string.Format("Value '{0}' is not a member of enum '{1}. Valid Types are: {2}", text, thisType.ToString(), string.Join(", ", new List<string>(mLookup[thisType].Keys).ToArray())));
+			}
+			outValue = defaultValue;
+			return false;
 		}
 
-		private static Dictionary<string, EmailCategory> mCategoryLookup;
-		public static bool EmailCategoryFromString(string text, out EmailCategory outCategory)
+		public static int Convert<T>(string text, int defaultValue = 0, bool printWarning = true)
 		{
-			InitOnce();
-			return mCategoryLookup.TryGetValue(text.ToLower(), out outCategory);
+			int outResult;
+			Convert<T>(text, out outResult, defaultValue, printWarning);
+			return outResult;
 		}
 	}
+	
 }

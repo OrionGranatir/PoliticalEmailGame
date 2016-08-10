@@ -6,11 +6,11 @@ public class GameplayDriver : MonoBehaviour {
 
 	public Email UIEmailPrefab;
 
-	public CGameplay mGameplay { get; private set; }
 	private Email mCurrentEmailUI;
 
 	private bool init = false;
 	private DataManager dataManager;
+	internal CGameplay mGameplay { get { return CGameState.Instance.Gameplay; } }
 
 	// Use this for initialization
 	void Start () 
@@ -24,12 +24,12 @@ public class GameplayDriver : MonoBehaviour {
 
 		// disable the email object. We'll use it as a prefab for generating future emails
 		// and for positional data
-		UIEmailPrefab.gameObject.SetActive(false); 
+		UIEmailPrefab.gameObject.SetActive(false);
 
-		mGameplay = new CGameplay();
-		mGameplay.NewEmailEvent += MGameplay_NewEmailEvent;
-
-		mGameplay.StartWave();
+		CGameState.StaticInit();
+		CGameState.Instance.Gameplay.NewEmailEvent += MGameplay_NewEmailEvent;
+		CGameState.Instance.NextWave();
+		
 	}
 
 	// Returns true when the game backend has fully loaded
@@ -51,7 +51,7 @@ public class GameplayDriver : MonoBehaviour {
         mCurrentEmailUI.gameObject.SetActive(true);
 	}
 
-	private void MCurrentEmailUI_CategoryChosenEvent(EmailCategory category)
+	private void MCurrentEmailUI_CategoryChosenEvent(CharacterType category)
 	{
 		mGameplay.CategoryChosen(category);
 	}

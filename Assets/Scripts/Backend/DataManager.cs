@@ -20,6 +20,8 @@ public enum DownloadDataType
 {
 	Email,
 	Phrases,
+	Wave,
+	Dialog
 }
 
 public class DownloadDataInfo
@@ -44,16 +46,12 @@ public class DataManager : MonoBehaviour
 	public float progress { get; private set; }
 
 	private int loadCount = -1;
-	private List<EmailData> emails;
-
-	private string wwwEmails;
 
 	private List<DownloadDataInfo> mToLoad = new List<DownloadDataInfo>();
 	private const string fileEmails = "emails.data";
 	private const string filePhrases = "phrases.data";
-
-	private const string urlEmails = "https://spreadsheets.google.com/feeds/list/1knOSeGd7ebLJtmIapm5fZCgOgF53Aq_bY1cg82UIW3E/od6/public/full?alt=json";
-	private const string urlPhrases = "https://spreadsheets.google.com/feeds/list/1eW4kMHdFOG4C9sgWyuc_0wvfR4mflDZSasY9irrBa68/od6/public/full?alt=json";
+	private const string fileWaves = "waves.data";
+	private const string fileDialog = "dialog.data";
 
 #if (UNITY_STANDALONE_WIN || UNITY_WSA)
 	private const string filePath = "file:///";
@@ -66,10 +64,12 @@ public class DataManager : MonoBehaviour
 		// Hook up print callbacks
 		CBackendUtil.DebugPrintCallback = (text) => Debug.Log(text);
 
+		CGameData.ResetGameData();
+
 		// Add the email request
 		DownloadDataInfo emailInfo = new DownloadDataInfo();
 		emailInfo.Filename = "emails.data";
-		emailInfo.URL = "https://spreadsheets.google.com/feeds/list/1knOSeGd7ebLJtmIapm5fZCgOgF53Aq_bY1cg82UIW3E/od6/public/full?alt=json";
+		emailInfo.URL = CBackendUtil.EmailURL;
 		emailInfo.DebugName = "Email Templates";
 		emailInfo.DataType = DownloadDataType.Email;
 		mToLoad.Add(emailInfo);
@@ -77,10 +77,26 @@ public class DataManager : MonoBehaviour
 		// Add the phrase request
 		DownloadDataInfo phraseInfo = new DownloadDataInfo();
 		phraseInfo.Filename = "phrases.data";
-		phraseInfo.URL = "https://spreadsheets.google.com/feeds/list/1eW4kMHdFOG4C9sgWyuc_0wvfR4mflDZSasY9irrBa68/od6/public/full?alt=json";
+		phraseInfo.URL = CBackendUtil.PhraseURL;
 		phraseInfo.DebugName = "Phrases";
 		phraseInfo.DataType = DownloadDataType.Phrases;
 		mToLoad.Add(phraseInfo);
+
+		// Add the phrase request
+		DownloadDataInfo waveInfo = new DownloadDataInfo();
+		waveInfo.Filename = "waves.data";
+		waveInfo.URL = CBackendUtil.WaveURL;
+		waveInfo.DebugName = "Waves";
+		waveInfo.DataType = DownloadDataType.Wave;
+		mToLoad.Add(waveInfo);
+
+		// Add the phrase request
+		DownloadDataInfo dialogInfo = new DownloadDataInfo();
+		dialogInfo.Filename = "dialog.data";
+		dialogInfo.URL = CBackendUtil.DialogURL;
+		dialogInfo.DebugName = "Dialog";
+		dialogInfo.DataType = DownloadDataType.Dialog;
+		mToLoad.Add(dialogInfo);
 
 		state = new StateTemplate<State>( State.Init );
 
@@ -92,28 +108,19 @@ public class DataManager : MonoBehaviour
 		}
 		*/
 
-		// Determine if we want to load files from the internet or files
-		if( Application.internetReachability != NetworkReachability.NotReachable || true )
-		{
-			wwwEmails = urlEmails;
-		}
-		else
-		{
-			wwwEmails = filePath + Application.persistentDataPath + "/" + fileEmails;
-		}
 	}
 
 	private void LoadEmailData( bool success, string text)
 	{
         if (!success)
 			throw new System.Exception("Failed To Load Email Data!");
-		CEmailGenerator.Instance.AddEmailTemplatesJSON(text);
+		CGameData.ParseEmailTemplates(text);
 	}
 	private void LoadPhraseData(bool success, string text)
 	{
 		if (!success)
 			throw new System.Exception("Failed To Load Phrase Data!");
-		CEmailGenerator.Instance.AddPhrasesJSON(text);
+		CGameData.ParsePhraseData(text);
 	}
 
 	// Update is called once per frame
@@ -132,8 +139,6 @@ public class DataManager : MonoBehaviour
 				}
 				else
 				{
-					emails = new List<EmailData>();  // Must come first because it tests for a valid connection
-
 					state.value = State.Load;
 				}
 				break;
@@ -152,8 +157,7 @@ public class DataManager : MonoBehaviour
 
 				if( loadCount == 0 )
 				{
-					CEmailGenerator.Instance.PrintSummary();
-					CEmailGenerator.Instance.ValidateEmails();
+					CGameData.PostLoadLinking();
                     state.value = State.Ready;
 				}
 
@@ -175,23 +179,6 @@ public class DataManager : MonoBehaviour
 		return ( state.value == State.Ready );
 	}
 
-	public EmailData GetEmail( int id )
-	{
-		EmailData result = null;
-
-		for( int index = 0; index < emails.Count; index++ )
-		{
-			EmailData email = emails[ index ];
-			if( email.id == id )
-			{
-				result = email;
-				break;
-			}
-		}
-
-		return result;
-	}
-
 	private delegate void DataReadyDelegate(bool result, string text);
 
 	private string GetFullPersistentFilename( string filename )
@@ -210,6 +197,11 @@ public class DataManager : MonoBehaviour
 			{
 				url = GetFullPersistentFilename(info.Filename);
 			}
+			else
+			{
+				//if (Application.internetReachability != NetworkReachability.NotReachable)
+				//	continue;
+            }
 			
 			// Pull data from the web
 			www = new WWW(url);
@@ -250,11 +242,19 @@ public class DataManager : MonoBehaviour
 			var webData = JSON.Parse(www.text);
 			if( info.DataType == DownloadDataType.Email)
 			{
-				CEmailGenerator.Instance.AddEmailTemplatesJSON(www.text);
+				CGameData.ParseEmailTemplates(www.text);
 			}
-			else
+			else if( info.DataType == DownloadDataType.Phrases)
 			{
-				CEmailGenerator.Instance.AddPhrasesJSON(www.text);
+				CGameData.ParsePhraseData(www.text);
+			}
+			else if (info.DataType == DownloadDataType.Dialog)
+			{
+				CGameData.ParseDialogData(www.text);
+			}
+			else if (info.DataType == DownloadDataType.Wave)
+			{
+				CGameData.ParseWaveData(www.text);
 			}
 
 			// Write the download content to a local file
@@ -267,65 +267,6 @@ public class DataManager : MonoBehaviour
 		}
 
 		yield break;
-	}
-
-	private IEnumerator DownloadEmailData()
-	{
-		// Pull data from the web
-		WWW www = new WWW( wwwEmails );
-
-		// Set a short timeout for downloading vote data
-		float startTime = Time.time; 
-		bool failed = false;
-
-		while( !www.isDone )
-		{
-			if( Time.time - startTime > 3.25f )
-			{ 
-				failed = true; 
-				break; 
-			}
-		}
-
-		// Check if we failed to read the file online, and switch to loading files
-		if(failed || !string.IsNullOrEmpty(www.error))
-		{
-			www.Dispose();
-			wwwEmails = filePath + Application.persistentDataPath + "/" + fileEmails;
-
-			StartCoroutine( "DownloadEmailData" );
-			yield break;
-		}
-
-		// Parse data
-		var webData = JSON.Parse( www.text );
-
-		// Check update date
-		string date = webData["feed"]["updated"]["$t"];
-		Debug.Log( "Email Date: " + date );
-
-		// Load data
-		int numEntries = webData["feed"]["entry"].Count;
-		for( int index = 0; index < numEntries; index++ )
-		{
-			EmailData email = new EmailData();
-			var entry = webData["feed"]["entry"][index];
-
-			email.id      = entry["gsx$id"]["$t"].AsInt;
-			email.to      = entry["gsx$to"]["$t"];
-			email.from    = entry["gsx$from"]["$t"];
-			email.subject = entry["gsx$subject"]["$t"];
-			email.body    = entry["gsx$body"]["$t"];
-
-			emails.Add( email );
-		}
-
-		// Write the download content to a local file
-		string fullPath = Application.persistentDataPath + "/" + fileEmails;
-		File.WriteAllBytes( fullPath, www.bytes );
-
-		// Mark that we are done loading
-		loadCount--;
 	}
 
 	private void WriteInitialFiles()

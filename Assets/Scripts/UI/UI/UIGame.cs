@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Backend;
 
 public class UIGame : MonoBehaviour 
 {
@@ -128,7 +129,7 @@ public class UIGame : MonoBehaviour
 		// Update our inbox, timer, and score
 		inboxCountText.text = uiManager.gameplayDriver.mGameplay.InboxCount.ToString();
 
-		if( uiManager.gameplayDriver.mGameplay.WaveStarted() )
+		if( uiManager.gameplayDriver.mGameplay.WaveState == WaveState.Playing )
 		{
 			state.value = State.Working;
 		}
@@ -149,17 +150,18 @@ public class UIGame : MonoBehaviour
 		scoreText.text = uiManager.gameplayDriver.mGameplay.WaveScore.ToString();
 
 		// Check if the day is complete
-		if( uiManager.gameplayDriver.mGameplay.WaveComplete() )
+		if( uiManager.gameplayDriver.mGameplay.WaveState == WaveState.Finished )
 		{
-			uiManager.ShowSummary();
-			state.value = State.Waiting;
-		}
-
-		// Check if it's game over, man...
-		if( uiManager.gameplayDriver.mGameplay.GameOver() )
-		{
-			uiManager.ShowGameOver();
-			state.value = State.Waiting;
+			if (uiManager.gameplayDriver.mGameplay.WaveResults == WaveResult.Success)
+			{
+				uiManager.ShowSummary();
+				state.value = State.Waiting;
+			}
+			else
+			{
+				uiManager.ShowGameOver();
+				state.value = State.Waiting;
+			}
 		}
 	}
 }

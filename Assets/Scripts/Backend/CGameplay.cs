@@ -5,105 +5,164 @@ using System.Text;
 
 namespace Backend
 {
-	public delegate void NewEmailDelegate(CEmail prevEmail, CEmail newEmail); 
+	public delegate void NewEmailDelegate(CEmail prevEmail, CEmail newEmail);
 
-	public class CGameplay
+	enum WaveState
+	{
+		Briefing,
+		Countdown,
+		Playing,
+		Finished
+	};
+
+	enum WaveResult
+	{
+		Success,
+		Failed,
+	};
+
+	class SummaryScreenInfo
+	{
+		public int WaveNumber { get; set; }
+		public int WaveScore { get; set; }
+		public int TotalScore { get; set; }
+		public int CorrectCount { get; set; }
+		public int MissedCount { get; set; }
+		public int SortedCount { get; set; }
+		public int JusticeDepartmentStanding { get; set; }
+    }
+
+	class CGameplay
 	{
 		public CGameplay()
 		{
-			// Set up characters
-			characters = new List<CCharacter>();
-			foreach( EmailCategory value in Enum.GetValues( typeof(EmailCategory) ) )
-			{
-				CCharacter character = new CCharacter( value );
-				characters.Add( character );
-			}
-		}
+        }
 
-		public int TotalScore { get { return mTotalScore; } }
 		public int WaveScore { get { return mWaveScore; } }
-		public int InboxCount {  get { return mInboxCount; } }
-		public int WaveEmail {  get { return mWaveEmailProcessed; } }
-		public string JusticeDepartmentStanding {  get { return mJusticeDepartmentStanding; } }
+		public int InboxCount { get { return mInboxCount; } }
+		public int WaveEmail { get { return mWaveEmailProcessed; } }
+		public string JusticeDepartmentStanding { get { return mJusticeDepartmentStanding; } }
 		public CEmail ActiveEmail { get { return mActiveEmail; } }
+		public List<CCharacter> ActiveCharacters { get { return mActiveCharacters; } }
 
-		public float Time { get { return mTime; } }
+		public float Time { get { return (float)mWaveDuration - mPlayingTime; } }
 		public float WaveDuration { get { return 120; } }
+
+		public WaveState WaveState { get { return mWaveState; } }
 		
-		private int mTotalScore;
+		public SummaryScreenInfo SummaryScreenInfo { get { return mSummaryScreenInfo; } }
 
-		// Chracters
-		List<CCharacter> characters;
+		public CWaveData CurrentWave { get { return mStaticWaveData; } }
 
-		// This wave
+		public CDialogItem CurrentDialog { get	{ return mActiveDialog.Count == 0 ? null : mActiveDialog.Peek(); } }
+		public WaveResult WaveResults { get { return mWaveResult; } }
+		public int CountdownSeconds { get { return kCountdownTime - (int)mTimeInState; } }
+
+		// This Wave
 		private int mWaveScore;
 		private int mInboxCount;
 		private CEmail mActiveEmail;
-		private float mTime;
+		private float mPlayingTime;
 		private int mWaveEmailProcessed;
 		private string mJusticeDepartmentStanding;
+		private List<CCharacter> mActiveCharacters;
+		SummaryScreenInfo mSummaryScreenInfo;
+		private CWaveData mStaticWaveData;
+		private WaveResult mWaveResult;
+		private int mWaveDuration = 30;
 
-		public void StartWave()
+		private WaveState mWaveState;
+		private float mTimeInState;
+
+		// queue of dialog to display
+		private Queue<CDialogItem> mActiveDialog;
+
+		// Countdown State
+		const int kCountdownTime = 3;
+		
+
+		public void CloseDialog()
 		{
-			mTime = 0.0f;
+			if (mActiveDialog.Count != 0)
+				mActiveDialog.Dequeue();
+        }
+
+		private void SetWaveState( WaveState state, bool force = false )
+		{
+			if( state != mWaveState || force)
+			{
+				mTimeInState = 0.0f;
+				mWaveState = state;
+            }
+		}
+
+		public void LoadWave(CWaveData data)
+		{
+			mPlayingTime = 0.0f;
 			mInboxCount = 0;
 			mWaveScore = 0;
 			mWaveEmailProcessed = 0;
 			mJusticeDepartmentStanding = "Ok";
+
+			SetWaveState(WaveState.Briefing);
+
+			// Add them all for now
+			mStaticWaveData = data;
+
+			// Set up characters
+			mActiveCharacters = new List<CCharacter>();
+			foreach ( CharacterType characterType in mStaticWaveData.Characters )
+			{
+				CCharacter character = new CCharacter(characterType);
+				mActiveCharacters.Add(character);
+			}
+
+			mActiveDialog = new Queue<CDialogItem>(mStaticWaveData.Dialog);
+
 			NewEmail();
 		}
 
 		public void Update( float dt )
 		{
-			mTime += dt;
-		}
-
-		// Returns true when the game is over
-		public bool GameOver()
-		{
-			return false;
-		}
-
-		// Returns true when the wave has started and the timer is running
-		public bool WaveStarted()
-		{
-			return true;
-		}
-
-		// Returns true when the wave is complete
-		public bool WaveComplete()
-		{
-			return false;
-		}
-
-		// Returns the character for the given email category
-		public CCharacter GetCharacter( EmailCategory category )
-		{
-			CCharacter result = null;
-
-			foreach( CCharacter character in characters )
+			if (mWaveState == WaveState.Briefing)
 			{
-				if( character.catergory == category )
+				if( mActiveDialog.Count == 0 )
 				{
-					result = character;
-					break;
+					SetWaveState( WaveState.Countdown );
 				}
 			}
-
-			return result;
-		}
+			else if (mWaveState == WaveState.Countdown)
+			{
+				if( (int)mTimeInState > kCountdownTime)
+				{
+					SetWaveState(WaveState.Playing);
+				}
+			}
+			else if (mWaveState == WaveState.Playing)
+			{
+				mPlayingTime += dt;
+				// Successfully completed the round
+                if (mPlayingTime > mWaveDuration)
+				{
+					mWaveResult = WaveResult.Success;
+					SetWaveState(WaveState.Finished);
+					mSummaryScreenInfo = new SummaryScreenInfo();
+				}
+			}
+			mTimeInState += dt;
+        }
 
 		private void NewEmail()
 		{
 			CEmail prevEmail = mActiveEmail;
-			mActiveEmail = CEmailGenerator.Instance.GenerateEmail();
+			mActiveEmail = CEmailGenerator.Instance.GenerateEmail( mStaticWaveData.CompiledEmailData );
 			if( NewEmailEvent != null )
 			{
 				NewEmailEvent(prevEmail, mActiveEmail);
 			}
 		}
 
-		public void CategoryChosen(EmailCategory category)
+		public void CategoryChosen(CharacterType category)
 		{
 			if( category == mActiveEmail.Category)
 			{

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Backend;
 
 public class UIGameOver : MonoBehaviour 
 {
@@ -36,7 +37,7 @@ public class UIGameOver : MonoBehaviour
 			{
 				// Load stats
 				waveScore.text = uiManager.gameplayDriver.mGameplay.WaveScore.ToString();
-				totalScore.text = uiManager.gameplayDriver.mGameplay.TotalScore.ToString();
+				totalScore.text = CGameState.Instance.Score.ToString();
 
 				state.value = State.Waiting;
 				break;

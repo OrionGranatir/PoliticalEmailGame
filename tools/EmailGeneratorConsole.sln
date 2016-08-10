@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailGeneratorConsole", "EmailGeneratorConsole\EmailGeneratorConsole.csproj", "{5F09BC25-56A4-4D12-B5C2-0AAF1E516911}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{8B491FA1-0F35-4D73-BD30-BE6B56325C4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextGame", "TextGame\TextGame.csproj", "{FE80707B-2512-45C3-AFC7-E84448F15607}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{5F09BC25-56A4-4D12-B5C2-0AAF1E516911}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F09BC25-56A4-4D12-B5C2-0AAF1E516911}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F09BC25-56A4-4D12-B5C2-0AAF1E516911}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B491FA1-0F35-4D73-BD30-BE6B56325C4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B491FA1-0F35-4D73-BD30-BE6B56325C4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B491FA1-0F35-4D73-BD30-BE6B56325C4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B491FA1-0F35-4D73-BD30-BE6B56325C4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE80707B-2512-45C3-AFC7-E84448F15607}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE80707B-2512-45C3-AFC7-E84448F15607}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE80707B-2512-45C3-AFC7-E84448F15607}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE80707B-2512-45C3-AFC7-E84448F15607}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

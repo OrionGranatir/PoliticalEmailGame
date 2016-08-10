@@ -3,14 +3,16 @@ using UnityEngine.UI;
 using System.Collections;
 using Backend;
 
-public class DropTarget : MonoBehaviour 
+public class DropTarget : MonoBehaviour
 {
-	public EmailCategory category;
 
-	private bool init = false;
-	private CCharacter character;
-	private CCharacter.Mood mood;
+	public int DropTargetIndex;
+
+	private CCharacter mCharacter;
+	private CharacterMood mMood;
 	private Image image;
+
+	public bool HasCharacter  { get { return mCharacter != null; } }
 
 	private UIManager uiManager;
 
@@ -22,39 +24,36 @@ public class DropTarget : MonoBehaviour
 
 	void Update()
 	{
-		// See if we need to initialize our data
-		if( !init && uiManager.IsReady() )
+		// Lazy update character image
+		if( uiManager.IsReady() )
 		{
-			init = true;
-			character = uiManager.gameplayDriver.mGameplay.GetCharacter( category );
-			mood = character.mood;
-		}
+			CCharacter lastCharacter = mCharacter;
 
-		// Update our character
-		if( init )
-		{
-			// Check if our mood has changed
-			if( mood != character.mood )
+			if( DropTargetIndex < CGameState.Instance.Gameplay.ActiveCharacters.Count )
 			{
-				// Animate the mood change
-				// ...
-
-				// Store our current mood
-				mood = character.mood;
+				mCharacter = CGameState.Instance.Gameplay.ActiveCharacters[DropTargetIndex];
+				image.enabled = true;
 			}
-
-			image.enabled = character.shown;
+			else
+			{
+				mCharacter = null;
+				image.enabled = false;
+			}
+			if( lastCharacter != mCharacter )
+			{
+				// new character arrived
+			}
+			if( mCharacter != null && mCharacter.mood != mMood )
+			{
+				// animate to mood
+				mMood = mCharacter.mood;
+            }
 		}
 	}
 
-	public EmailCategory Category()
+	public CharacterType Category()
 	{
-		return character.catergory;
-	}
-
-	public bool CharacterShown()
-	{
-		return character.shown;
+		return mCharacter != null ? mCharacter.catergory : CharacterType.Unknown;
 	}
 
 	public void RecieveEmail( Email email )

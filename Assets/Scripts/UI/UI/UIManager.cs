@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Backend;
 
 public class UIManager : MonoBehaviour 
 {
@@ -46,10 +47,11 @@ public class UIManager : MonoBehaviour
 	{
 		// Setup the game UI for a new day
 		uiGame.Configure();
-		
+
 		// Tell the gameplay drive to start a new wave
-		gameplayDriver.mGameplay.StartWave();
-	}
+		CGameState.Instance.NextWave();
+
+	}	
 
 	public void ShowGame()
 	{

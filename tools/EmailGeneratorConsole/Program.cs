@@ -19,22 +19,14 @@ namespace Backend
 		{
 			CEmailGenerator.ResetInstance();
 
-			string emailURL = "https://spreadsheets.google.com/feeds/list/1knOSeGd7ebLJtmIapm5fZCgOgF53Aq_bY1cg82UIW3E/od6/public/full?alt=json";
-			string phraseURL = "https://spreadsheets.google.com/feeds/list/1eW4kMHdFOG4C9sgWyuc_0wvfR4mflDZSasY9irrBa68/od6/public/full?alt=json";
-
 			CBackendUtil.DebugPrintCallback = (text) => { Console.WriteLine(text); };
 
-			string emailJsonText = FetchURL(emailURL);
-			CEmailGenerator.Instance.AddEmailTemplatesJSON(emailJsonText);
+			DataFetcherWin df = new DataFetcherWin();
+			df.SetRequests(CBackendUtil.GetDataRequests());
+			df.FetchAll(false);
+			CBackendUtil.PopulateData(df);
 
-
-			string phraseJsonText = FetchURL(phraseURL);
-			CEmailGenerator.Instance.AddPhrasesJSON(phraseJsonText);
-
-			// Print Summary
-			CEmailGenerator.Instance.PrintSummary();
-
-			CEmailGenerator.Instance.ValidateEmails();
+			CEmailGenerator.Instance.ValidateEmails( CGameData.WaveDataList[0].CompiledEmailData );
 		}
 
 		static void Main(string[] args)
@@ -54,7 +46,7 @@ namespace Backend
 				Func<int, bool> GenAndPrintEmail = (seed) =>
 				{
 					CEmailGenerator.Instance.mRandom = new Random(seed);
-					CEmail email = CEmailGenerator.Instance.GenerateEmail();
+					CEmail email = CEmailGenerator.Instance.GenerateEmail(CGameData.WaveDataList[0].CompiledEmailData );
 					Console.WriteLine("-------------- Seed {0}", seed);
 					Console.WriteLine(string.Format("Category: {0}", email.Category.ToString()));
 					Console.WriteLine(string.Format("From: {0}", email.From));

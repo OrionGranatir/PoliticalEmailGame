@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Backend;
 
 public class UISummary : MonoBehaviour 
 {
@@ -37,10 +38,12 @@ public class UISummary : MonoBehaviour
 			case State.Init:
 			{
 				// Load stats
-				waveScore.text = uiManager.gameplayDriver.mGameplay.WaveScore.ToString();
-				emailsCollected.text = uiManager.gameplayDriver.mGameplay.WaveEmail.ToString();
-				justiceDepartmentStanding.text = uiManager.gameplayDriver.mGameplay.JusticeDepartmentStanding;
-				totalScore.text = uiManager.gameplayDriver.mGameplay.TotalScore.ToString();
+
+				SummaryScreenInfo info = CGameState.Instance.Gameplay.SummaryScreenInfo;
+				waveScore.text = info.WaveScore.ToString();
+				emailsCollected.text = info.SortedCount.ToString();
+				justiceDepartmentStanding.text = info.JusticeDepartmentStanding.ToString();
+				totalScore.text = info.TotalScore.ToString();
 
 				state.value = State.Waiting;
 				break;

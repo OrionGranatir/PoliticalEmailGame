@@ -10,6 +10,6 @@ namespace Backend
 		public string From { get; set; }
 		public string Subject { get; set; }
 		public string Body { get; set; }
-		public EmailCategory Category { get; set; }
+		public CharacterType Category { get; set; }
 	}
 }

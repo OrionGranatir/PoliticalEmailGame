@@ -7,7 +7,7 @@ using Backend;
 
 public class Email : MonoBehaviour 
 {
-	public delegate void CategoryChooseDelegate( EmailCategory category );
+	public delegate void CategoryChooseDelegate( CharacterType category );
 
 	public Text toLine;
 	public Text fromLine;
